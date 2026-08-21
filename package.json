@@ -68,6 +68,7 @@
     "tsdown": "latest",
     "typescript": "^5.9.0"
   },
+  "packageManager": "pnpm@11.10.0",
   "engines": {
     "node": ">=18"
   },
