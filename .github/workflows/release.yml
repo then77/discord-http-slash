@@ -1,0 +1,169 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - release
+  workflow_dispatch:
+    inputs:
+      force_publish:
+        description: Force publish npm
+        type: boolean
+        default: false
+      force_release:
+        description: Force create GitHub release
+        type: boolean
+        default: false
+
+jobs:
+  check:
+    name: Check release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+      version: ${{ steps.check.outputs.version }}
+      force_publish: ${{ steps.check.outputs.force_publish }}
+      force_release: ${{ steps.check.outputs.force_release }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/ci-setup
+
+      - name: Check
+        id: check
+        shell: bash
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          VERSION=$(node -p "require('./package.json').version")
+
+          echo "Current branch: $BRANCH"
+          echo "Current version: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          if [[ "$BRANCH" != "release" ]]; then
+            echo "SKIP: Unsupported branch"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          FORCE_PUBLISH="${{ github.event.inputs.force_publish }}"
+          FORCE_RELEASE="${{ github.event.inputs.force_release }}"
+          FORCE_PUBLISH="${FORCE_PUBLISH:-false}"
+          FORCE_RELEASE="${FORCE_RELEASE:-false}"
+
+          echo "force_publish=$FORCE_PUBLISH" >> "$GITHUB_OUTPUT"
+          echo "force_release=$FORCE_RELEASE" >> "$GITHUB_OUTPUT"
+
+          if [[ "$FORCE_PUBLISH" == "true" || "$FORCE_RELEASE" == "true" ]]; then
+            echo "Force publish/release, skipping changeset check"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! grep -R '"discord-http-slash"' .changeset --include='*.md' >/dev/null 2>&1; then
+            echo "SKIP: No changeset found for discord-http-slash"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Changeset found for discord-http-slash"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+  version:
+    name: Update version
+    needs: check
+    if: needs.check.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: true
+
+      - uses: ./.github/actions/ci-setup
+
+      - name: Version
+        id: version
+        shell: bash
+        run: |
+          pnpm changeset version
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Commit version
+        shell: bash
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+          git add .
+          git commit -m "chore: release ${{ steps.version.outputs.version }}" || true
+          git push
+
+  publish:
+    name: Publish npm
+    needs:
+      - check
+      - version
+    if: >-
+      !failure() &&
+      needs.check.outputs.skip != 'true' &&
+      (needs.check.outputs.force_publish == 'true' ||
+       needs.check.outputs.force_release != 'true')
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.ref }}
+          persist-credentials: false
+
+      - uses: ./.github/actions/ci-setup
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publish
+        run: pnpm publish --no-git-checks --provenance --access public --tag latest
+
+  release:
+    name: GitHub Release
+    needs:
+      - check
+      - version
+    if: >-
+      !failure() &&
+      needs.check.outputs.skip != 'true' &&
+      (needs.check.outputs.force_release == 'true' ||
+       needs.check.outputs.force_publish != 'true')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.ref }}
+          persist-credentials: false
+
+      - uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
+        with:
+          tag_name: v${{ needs.version.outputs.version || needs.check.outputs.version }}
+          generate_release_notes: true
+          prerelease: false
