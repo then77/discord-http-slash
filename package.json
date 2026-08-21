@@ -1,0 +1,65 @@
+{
+  "name": "discord-http-slash",
+  "version": "0.0.0",
+  "description": "Use discord.js-style slash commands with Discord HTTP interactions.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "clean": "tsdown --clean"
+  },
+  "keywords": [
+    "discord",
+    "discord.js",
+    "slash-commands",
+    "interactions",
+    "serverless"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "discord-interactions": "^4.4.0",
+    "discord.js": "^14.27.0"
+  },
+  "peerDependenciesMeta": {
+    "discord-interactions": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "discord-api-types": "^0.38.53"
+  },
+  "devDependencies": {
+    "discord-interactions": "^4.4.0",
+    "discord.js": "^14.27.0",
+    "tsdown": "latest",
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
