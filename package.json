@@ -1,6 +1,6 @@
 {
   "name": "discord-http-slash",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Use discord.js-style slash commands with Discord HTTP interactions.",
   "type": "module",
   "main": "./dist/index.cjs",
