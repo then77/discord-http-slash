@@ -17,15 +17,23 @@ Use `discord.js`-style slash command definitions and handlers with Discord HTTP 
 
 ## Installation
 
+For the familiar `discord.js` builder and REST APIs:
+
 ```sh
 npm install discord-http-slash discord.js discord-interactions
+```
+
+Or, if you do not need the full `discord.js` package, you can install only the smaller Discord packages used by the examples below:
+
+```sh
+npm install discord-http-slash @discordjs/builders @discordjs/rest discord-interactions
 ```
 
 ## Basic usage
 
 ```ts
-import { verifyKey } from "discord-interactions";
 import { SlashCommandBuilder } from "discord.js";
+import { verifyKey } from "discord-interactions";
 import { HTTPInteractionCommands } from "discord-http-slash";
 
 const commands = new HTTPInteractionCommands([
@@ -83,6 +91,35 @@ await rest.put(
   { body: commands.toJSON() },
 );
 ```
+
+## Using smaller Discord packages
+
+`discord-http-slash` does not require the full `discord.js` package at runtime. If you prefer a smaller install, command builders can come from `@discordjs/builders` and command registration can use `@discordjs/rest` directly.
+
+```ts
+import { SlashCommandBuilder } from "@discordjs/builders";
+import { REST } from "@discordjs/rest";
+import { Routes } from "discord-api-types/v10";
+import { HTTPInteractionCommands } from "discord-http-slash";
+
+const commands = new HTTPInteractionCommands([
+  {
+    data: new SlashCommandBuilder()
+      .setName("ping")
+      .setDescription("Replies with Pong"),
+    execute: (interaction) => interaction.reply("Pong!"),
+  },
+]);
+
+const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN!);
+
+await rest.put(
+  Routes.applicationCommands(process.env.DISCORD_APPLICATION_ID!),
+  { body: commands.toJSON() },
+);
+```
+
+Signature verification is intentionally left up to your app. The examples use `discord-interactions`, but any Ed25519 verification implementation works.
 
 ## API overview
 

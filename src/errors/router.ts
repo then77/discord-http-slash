@@ -1,3 +1,5 @@
+import { DiscordHTTPSlashError } from "./base";
+
 export enum HTTPInteractionRouterErrorCode {
   UnsupportedInteractionType = "UnsupportedInteractionType",
   UnsupportedApplicationCommandType = "UnsupportedApplicationCommandType",
@@ -8,18 +10,7 @@ export enum HTTPInteractionRouterErrorCode {
 
 export class HTTPInteractionRouterError<
   Code extends HTTPInteractionRouterErrorCode = HTTPInteractionRouterErrorCode,
-> extends Error {
-  public readonly code: Code;
-
-  constructor(code: Code, message: string) {
-    super(message);
-
-    this.code = code;
-    this.name = `HTTPInteractionRouterError [${code}]`;
-
-    Object.setPrototypeOf(this, new.target.prototype);
-  }
-}
+> extends DiscordHTTPSlashError<Code> {}
 
 export class UnsupportedInteractionTypeError extends HTTPInteractionRouterError<
   HTTPInteractionRouterErrorCode.UnsupportedInteractionType

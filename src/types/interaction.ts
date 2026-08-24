@@ -1,4 +1,4 @@
-import type { REST } from "discord.js";
+import type { REST } from "@discordjs/rest";
 import {
   InteractionResponseType,
   type APIInteractionResponseCallbackData,
