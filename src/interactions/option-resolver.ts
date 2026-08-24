@@ -1,4 +1,3 @@
-import { DiscordjsErrorCodes } from "discord.js";
 import {
   ApplicationCommandOptionType,
   type APIApplicationCommandInteractionDataBasicOption,
@@ -13,7 +12,13 @@ import type {
   ResolvedChannel,
   ResolvedMember,
 } from "../types/common";
-import { PublicDiscordjsTypeError } from "../utils/discordjs-errors";
+import {
+  HTTPInteractionOptionEmptyError,
+  HTTPInteractionOptionNotFoundError,
+  HTTPInteractionOptionTypeMismatchError,
+  HTTPInteractionSubcommandGroupNotFoundError,
+  HTTPInteractionSubcommandNotFoundError,
+} from "../errors/option-resolver";
 
 export class HTTPCommandInteractionOptionResolver {
   public readonly data: readonly APIApplicationCommandInteractionDataOption[];
@@ -88,10 +93,7 @@ export class HTTPCommandInteractionOptionResolver {
 
     if (!option) {
       if (required) {
-        throw new PublicDiscordjsTypeError(
-          DiscordjsErrorCodes.CommandInteractionOptionNotFound,
-          name,
-        );
+        throw new HTTPInteractionOptionNotFoundError(name);
       }
 
       return null;
@@ -109,10 +111,7 @@ export class HTTPCommandInteractionOptionResolver {
 
     if (!option) {
       if (required) {
-        throw new PublicDiscordjsTypeError(
-          DiscordjsErrorCodes.CommandInteractionOptionNotFound,
-          name,
-        );
+        throw new HTTPInteractionOptionNotFoundError(name);
       }
 
       return null;
@@ -121,20 +120,15 @@ export class HTTPCommandInteractionOptionResolver {
     const optionType = option.type;
 
     if (!allowedTypes.includes(optionType)) {
-      throw new PublicDiscordjsTypeError(
-        DiscordjsErrorCodes.CommandInteractionOptionType,
+      throw new HTTPInteractionOptionTypeMismatchError(
         name,
         optionType,
-        allowedTypes.join(", "),
+        allowedTypes,
       );
     }
 
     if (required && !("value" in option)) {
-      throw new PublicDiscordjsTypeError(
-        DiscordjsErrorCodes.CommandInteractionOptionEmpty,
-        name,
-        optionType,
-      );
+      throw new HTTPInteractionOptionEmptyError(name, optionType);
     }
 
     return option;
@@ -149,11 +143,7 @@ export class HTTPCommandInteractionOptionResolver {
       return value;
     }
 
-    throw new PublicDiscordjsTypeError(
-      DiscordjsErrorCodes.CommandInteractionOptionEmpty,
-      name,
-      optionType,
-    );
+    throw new HTTPInteractionOptionEmptyError(name, optionType);
   }
 
   getString(name: string, required: true): string;
@@ -390,9 +380,7 @@ export class HTTPCommandInteractionOptionResolver {
 
   getSubcommand(required = true): string | null {
     if (required && !this.subcommand) {
-      throw new PublicDiscordjsTypeError(
-        DiscordjsErrorCodes.CommandInteractionOptionNoSubcommand,
-      );
+      throw new HTTPInteractionSubcommandNotFoundError();
     }
 
     return this.subcommand;
@@ -403,9 +391,7 @@ export class HTTPCommandInteractionOptionResolver {
 
   getSubcommandGroup(required = false): string | null {
     if (required && !this.subcommandGroup) {
-      throw new PublicDiscordjsTypeError(
-        DiscordjsErrorCodes.CommandInteractionOptionNoSubcommandGroup,
-      );
+      throw new HTTPInteractionSubcommandGroupNotFoundError();
     }
 
     return this.subcommandGroup;

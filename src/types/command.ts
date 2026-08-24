@@ -1,4 +1,4 @@
-import type { SlashCommandBuilder } from "discord.js";
+import type { SlashCommandBuilder } from "@discordjs/builders";
 
 import type { HTTPChatInputCommandInteraction } from "../interactions/chat-input";
 import type { HTTPInteractionOptions } from "./interaction";

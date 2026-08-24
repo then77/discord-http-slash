@@ -1,11 +1,9 @@
-import {
-  MessageFlags,
-  REST,
-} from "discord.js";
+import { REST } from "@discordjs/rest";
 import {
   ApplicationCommandType,
   InteractionResponseType,
   InteractionType,
+  MessageFlags,
   Routes,
   type APIChatInputApplicationCommandInteraction,
   type APIMessage,

@@ -14,10 +14,26 @@ export type {
 } from "./types/command";
 
 export {
+  DiscordHTTPSlashError,
+} from "./errors/base";
+
+export {
   HTTPInteractionAlreadyRepliedError,
   HTTPInteractionCollectorError,
+  HTTPInteractionError,
+  HTTPInteractionErrorCode,
   HTTPInteractionNotRepliedError,
 } from "./errors/interaction";
+
+export {
+  HTTPInteractionOptionEmptyError,
+  HTTPInteractionOptionNotFoundError,
+  HTTPInteractionOptionResolverError,
+  HTTPInteractionOptionResolverErrorCode,
+  HTTPInteractionOptionTypeMismatchError,
+  HTTPInteractionSubcommandGroupNotFoundError,
+  HTTPInteractionSubcommandNotFoundError,
+} from "./errors/option-resolver";
 
 export {
   DuplicateApplicationCommandError,
