@@ -144,6 +144,39 @@ interface HTTPApplicationCommand {
 }
 ```
 
+### Error responses
+
+`commands.handle(...)` throws package errors for cases like unknown commands, unsupported interaction types, or commands that finish without replying or deferring. Package errors extend `DiscordHTTPSlashError` and can be turned into an immediate ephemeral Discord response with `error.toErrorResponse()`.
+
+```ts
+import {
+  DiscordHTTPSlashError,
+  HTTPInteractionCommands,
+} from "discord-http-slash";
+
+try {
+  const response = await commands.handle(JSON.parse(body));
+
+  return Response.json(response);
+} catch (error) {
+  if (error instanceof DiscordHTTPSlashError) {
+    /**
+     * Returns a JSON response like:
+     * {
+     *   "type": 4,
+     *   "data": {
+     *     "content": "Unknown application command: \"ping\"",
+     *     "flags": 64
+     *   }
+     * }
+     */
+    return Response.json(error.toErrorResponse());
+  }
+
+  throw error;
+}
+```
+
 ### Interaction methods
 
 `HTTPChatInputCommandInteraction` currently supports:
