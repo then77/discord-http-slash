@@ -146,7 +146,7 @@ interface HTTPApplicationCommand {
 
 ### Error responses
 
-`commands.handle(...)` throws package errors for cases like unknown commands, unsupported interaction types, duplicate commands, or commands that finish without replying or deferring. Package errors extend `DiscordHTTPSlashError` and can be turned into an immediate ephemeral Discord response with `error.toErrorResponse()`.
+`commands.handle(...)` throws package errors for cases like unknown commands, unsupported interaction types, or commands that finish without replying or deferring. Package errors extend `DiscordHTTPSlashError` and can be turned into an immediate ephemeral Discord response with `error.toErrorResponse()`.
 
 ```ts
 import {
