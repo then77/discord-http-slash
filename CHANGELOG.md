@@ -1,5 +1,11 @@
 # discord-http-slash
 
+## 0.1.3
+
+### Patch Changes
+
+- 521b6f2: Add new to response helper directly for interaction error
+
 ## 0.1.2
 
 ### Patch Changes
