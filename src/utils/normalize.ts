@@ -13,7 +13,7 @@ function isJSONEncodable<T>(value: unknown): value is JSONEncodable<T> {
 }
 
 // Accept both raw API payloads and discord.js builders.
-function normalizeJSON<T>(value: BuilderAware<T>): T {
+export function normalizeJSON<T>(value: BuilderAware<T>): T {
   return isJSONEncodable<T>(value) ? value.toJSON() : value;
 }
 

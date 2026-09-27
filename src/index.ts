@@ -6,12 +6,21 @@ export type {
   HTTPInteractionOptions,
   HTTPInteractionReplyData,
   HTTPInteractionReplyOptions,
+  HTTPModalResponseData,
 } from "./types/interaction";
 
 export type {
   HTTPApplicationCommand,
   HTTPInteractionCommandsOptions,
+  HTTPAutocompleteChoices,
+  HTTPAutocompleteContext,
+  HTTPAutocompleteHandler,
+  HTTPCommandAutocomplete,
+  HTTPCommandInteraction,
+  HTTPInteractionHandler,
 } from "./types/command";
+
+export type { HTTPAutocompleteFocusedOption } from "./interactions/autocomplete";
 
 export {
   DiscordHTTPSlashError,
@@ -40,7 +49,10 @@ export {
   HTTPInteractionRouterError,
   HTTPInteractionRouterErrorCode,
   InteractionNotAcknowledgedError,
+  InteractionHandlerNotAcknowledgedError,
+  InvalidAutocompleteConfigurationError,
   UnknownApplicationCommandError,
+  UnknownInteractionHandlerError,
   UnsupportedApplicationCommandTypeError,
   UnsupportedInteractionTypeError,
 } from "./errors/router";
@@ -52,6 +64,10 @@ export {
 export {
   HTTPChatInputCommandInteraction,
 } from "./interactions/chat-input";
+
+export { HTTPAutocompleteInteraction } from "./interactions/autocomplete";
+export { HTTPMessageComponentInteraction } from "./interactions/component";
+export { HTTPModalSubmitFields, HTTPModalSubmitInteraction } from "./interactions/modal-submit";
 
 export {
   HTTPInteractionCommands,

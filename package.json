@@ -27,6 +27,7 @@
   "scripts": {
     "build": "tsdown",
     "typecheck": "tsc --noEmit",
+    "test": "npm run typecheck && npm run build && node --test test/router.test.mjs",
     "clean": "tsdown --clean",
     "changeset": "changeset",
     "version": "changeset version",

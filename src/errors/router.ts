@@ -5,6 +5,9 @@ export enum HTTPInteractionRouterErrorCode {
   UnsupportedApplicationCommandType = "UnsupportedApplicationCommandType",
   UnknownApplicationCommand = "UnknownApplicationCommand",
   InteractionNotAcknowledged = "InteractionNotAcknowledged",
+  InteractionHandlerNotAcknowledged = "InteractionHandlerNotAcknowledged",
+  UnknownInteractionHandler = "UnknownInteractionHandler",
+  InvalidAutocompleteConfiguration = "InvalidAutocompleteConfiguration",
   DuplicateApplicationCommand = "DuplicateApplicationCommand",
 }
 
@@ -66,6 +69,51 @@ export class InteractionNotAcknowledgedError extends HTTPInteractionRouterError<
     super(
       HTTPInteractionRouterErrorCode.InteractionNotAcknowledged,
       `Application command "${commandName}" completed without replying or deferring.`,
+    );
+
+    this.commandName = commandName;
+  }
+}
+
+export class InteractionHandlerNotAcknowledgedError extends HTTPInteractionRouterError<
+  HTTPInteractionRouterErrorCode.InteractionHandlerNotAcknowledged
+> {
+  public readonly customId: string;
+
+  constructor(customId: string) {
+    super(
+      HTTPInteractionRouterErrorCode.InteractionHandlerNotAcknowledged,
+      `Interaction handler for "${customId}" completed without replying or deferring.`,
+    );
+
+    this.customId = customId;
+  }
+}
+
+export class UnknownInteractionHandlerError extends HTTPInteractionRouterError<
+  HTTPInteractionRouterErrorCode.UnknownInteractionHandler
+> {
+  public readonly customId: string;
+
+  constructor(customId: string) {
+    super(
+      HTTPInteractionRouterErrorCode.UnknownInteractionHandler,
+      `No interaction handler found for custom ID: "${customId}".`,
+    );
+
+    this.customId = customId;
+  }
+}
+
+export class InvalidAutocompleteConfigurationError extends HTTPInteractionRouterError<
+  HTTPInteractionRouterErrorCode.InvalidAutocompleteConfiguration
+> {
+  public readonly commandName: string;
+
+  constructor(commandName: string, details: string) {
+    super(
+      HTTPInteractionRouterErrorCode.InvalidAutocompleteConfiguration,
+      `Invalid autocomplete configuration for command "${commandName}": ${details}.`,
     );
 
     this.commandName = commandName;
