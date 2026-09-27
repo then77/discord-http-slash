@@ -1,5 +1,11 @@
 # discord-http-slash
 
+## 0.1.4
+
+### Patch Changes
+
+- 1787239: Add autocomplete and component/modal interaction handling with tests
+
 ## 0.1.3
 
 ### Patch Changes
