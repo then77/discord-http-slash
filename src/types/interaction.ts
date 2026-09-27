@@ -1,7 +1,9 @@
 import type { REST } from "@discordjs/rest";
 import {
   InteractionResponseType,
+  type APIInteractionResponse,
   type APIInteractionResponseCallbackData,
+  type APIModalInteractionResponseCallbackData,
 } from "discord-api-types/v10";
 
 import type { APIComponent, APIEmbed, BuilderAware } from "./common";
@@ -28,12 +30,17 @@ export interface HTTPInteractionOptions {
   rest?: REST;
 }
 
-export type HTTPInitialInteractionResponse =
-  | {
-      type: InteractionResponseType.ChannelMessageWithSource;
-      data: APIInteractionResponseCallbackData;
-    }
-  | {
-      type: InteractionResponseType.DeferredChannelMessageWithSource;
-      data?: APIInteractionResponseCallbackData;
-    };
+export type HTTPModalResponseData =
+  BuilderAware<APIModalInteractionResponseCallbackData>;
+
+export type HTTPInitialInteractionResponse = Extract<
+  APIInteractionResponse,
+  {
+    type:
+      | InteractionResponseType.ChannelMessageWithSource
+      | InteractionResponseType.DeferredChannelMessageWithSource
+      | InteractionResponseType.DeferredMessageUpdate
+      | InteractionResponseType.UpdateMessage
+      | InteractionResponseType.Modal;
+  }
+>;

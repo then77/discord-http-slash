@@ -13,6 +13,7 @@ Use `discord.js`-style slash command definitions and handlers with Discord HTTP 
 - Handle Discord HTTP interaction payloads without running a gateway bot process.
 - Supports immediate replies, deferred replies, editing the original reply, follow-ups, fetching replies, and deleting replies through interaction webhooks.
 - Includes a `discord.js`-style command option resolver for chat input command options.
+- Routes autocomplete, message components, and modal submissions to command callbacks.
 - TypeScript declarations are generated for package consumers.
 
 ## Installation
@@ -125,7 +126,7 @@ Signature verification is intentionally left up to your app. The examples use `d
 
 ### `HTTPInteractionCommands`
 
-Routes raw Discord interaction payloads to the matching chat input command.
+Routes raw Discord interaction payloads to the matching command callback.
 
 ```ts
 const router = new HTTPInteractionCommands(commands, options);
@@ -133,6 +134,7 @@ const response = await router.handle(rawInteraction);
 ```
 
 - Responds to Discord ping interactions automatically.
+- Dispatches slash commands to `execute`, autocomplete requests to `autocomplete`, and buttons/selects/modal submissions to `interaction`.
 - Throws for unsupported interaction types, unsupported command types, duplicate commands, unknown commands, and commands that finish without replying or deferring.
 
 ### Command shape
@@ -141,8 +143,85 @@ const response = await router.handle(rawInteraction);
 interface HTTPApplicationCommand {
   data: Pick<SlashCommandBuilder, "name" | "toJSON">;
   execute(interaction: HTTPChatInputCommandInteraction): void | Promise<void>;
+  autocomplete?: HTTPCommandAutocomplete;
+  interaction?: (interaction: HTTPMessageComponentInteraction | HTTPModalSubmitInteraction) => void | Promise<void>;
 }
 ```
+
+### Autocomplete
+
+Set `autocomplete` when a slash option enables autocomplete. Use a single callback for all options or a map keyed by option name. The callback receives the focused option and an interaction whose `options` resolver exposes the current input. Return up to 25 Discord choice objects; extra choices are truncated.
+
+```ts
+import { SlashCommandBuilder } from "@discordjs/builders";
+import type { HTTPApplicationCommand } from "discord-http-slash";
+
+const command: HTTPApplicationCommand = {
+  data: new SlashCommandBuilder()
+    .setName("search")
+    .setDescription("Search items")
+    .addStringOption((option) => option
+      .setName("query")
+      .setDescription("Search term")
+      .setAutocomplete(true)),
+  execute: (interaction) => interaction.reply("Selected"),
+  autocomplete: {
+    query: ({ focused }) => [
+      { name: `Search for ${focused.value}`, value: String(focused.value) },
+    ],
+  },
+};
+```
+
+The constructor validates that every autocomplete-enabled option has a handler and that mapped handlers name enabled options.
+
+### Buttons, selects, and modal input
+
+Use the optional `interaction` callback. Prefix each component or modal `custom_id` with the command name and a colon, such as `search:open` or `search:submit`. This prefix identifies the owner because Discord does not send the original slash-command name with component and modal events. The remainder of the ID is yours to interpret.
+
+```ts
+import { SlashCommandBuilder } from "@discordjs/builders";
+import { ButtonStyle, ComponentType, TextInputStyle } from "discord-api-types/v10";
+import type { HTTPApplicationCommand } from "discord-http-slash";
+
+const command: HTTPApplicationCommand = {
+  data: new SlashCommandBuilder().setName("search").setDescription("Search items"),
+  execute: (interaction) => interaction.reply({
+    content: "Ready",
+    components: [{
+      type: ComponentType.ActionRow,
+      components: [{
+        type: ComponentType.Button,
+        style: ButtonStyle.Primary,
+        label: "Open",
+        custom_id: "search:open",
+      }],
+    }],
+  }),
+  async interaction(interaction) {
+    if (interaction.isMessageComponent()) {
+      await interaction.showModal({
+        custom_id: "search:submit",
+        title: "Search",
+        components: [{
+          type: ComponentType.ActionRow,
+          components: [{
+            type: ComponentType.TextInput,
+            custom_id: "query",
+            label: "Query",
+            style: TextInputStyle.Short,
+          }],
+        }],
+      });
+    } else if (interaction.isModalSubmit()) {
+      const query = interaction.fields.getTextInputValue("query");
+      await interaction.reply(`Searching for ${query}`);
+    }
+  },
+};
+```
+
+Slash commands can also call `showModal()` from `execute`. Component interactions support `update(input)` and `deferUpdate()`. Both component and modal interactions support the normal `reply`, `deferReply`, and webhook reply methods. Modal `update`/`deferUpdate` apply when the modal was opened from a message component. As with `execute`, each callback must reply, defer, update, or open a modal before it returns.
 
 ### Error responses
 
@@ -183,6 +262,7 @@ try {
 
 - `reply(input)`
 - `deferReply(options?)`
+- `showModal(input)`
 - `editReply(input)`
 - `followUp(input)`
 - `fetchReply(message?)`
@@ -194,6 +274,7 @@ try {
 ```sh
 npm install
 npm run typecheck
+npm test
 npm run build
 ```
 
